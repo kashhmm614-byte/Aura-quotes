@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar } from './components/Navbar';
-import { SpotlightHero } from './components/SpotlightHero';
+import { Hero } from './components/Hero';
 import { QuoteCard } from './components/QuoteCard';
 import { CategoryChips } from './components/CategoryChips';
-import { WisdomStrata } from './components/WisdomStrata';
+import { Features } from './components/Features';
 import { Footer } from './components/Footer';
 import { AuthGate } from './components/AuthGate';
 import { Toast } from './components/Toast';
-import { MobileNav } from './components/MobileNav';
-import { AmbientLayers } from './components/AmbientLayers';
-import { PixelRevealCurtain } from './components/PixelRevealCurtain';
 import { UserMenu } from './components/UserMenu';
 import { CreateModal } from './components/modals/CreateModal';
 import { VaultModal } from './components/modals/VaultModal';
@@ -21,22 +18,6 @@ import { auraDB } from './lib/db';
 import { loadSession, saveSession, loginWithDemo, signOut } from './lib/auth';
 import { auraNeon } from './lib/neon-client';
 import { lithosAudio } from './lib/lithos';
-
-const THEME_KEY = 'auraquote_theme';
-
-function loadTheme(): ThemeName {
-  try {
-    const t = localStorage.getItem(THEME_KEY);
-    if (t) return t as ThemeName;
-  } catch {
-    /* ignore */
-  }
-  return 'lithos';
-}
-
-function applyTheme(t: ThemeName) {
-  document.documentElement.setAttribute('data-theme', t);
-}
 
 function vibrate(ms = 8) {
   try {
@@ -60,14 +41,10 @@ export const App: React.FC = () => {
   const [activeModal, setActiveModal] = useState<ModalId>(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [isAudioOn, setIsAudioOn] = useState(false);
-  const [theme, setTheme] = useState<ThemeName>(loadTheme);
   const [showAuthGate, setShowAuthGate] = useState(false);
-  const [revealKey, setRevealKey] = useState(0);
   const [neonConfigured, setNeonConfigured] = useState(false);
 
   const toastTimer = useRef<number | null>(null);
-  const quoteRef = useRef<Quote | null>(null);
-  quoteRef.current = currentQuote;
 
   const showToast = useCallback((message: string, type: ToastMessage['type'] = 'info') => {
     const id = String(Date.now()) + Math.random();
@@ -108,24 +85,13 @@ export const App: React.FC = () => {
   }, [updateStreak]);
 
   useEffect(() => {
-    applyTheme(theme);
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      /* ignore */
-    }
-  }, [theme]);
-
-  useEffect(() => {
     let cancelled = false;
-
     (async () => {
       try {
         await auraDB.init();
       } catch (e) {
         console.error('DB init error', e);
       }
-
       const session = loadSession();
       if (session) setUser(session);
 
@@ -135,39 +101,20 @@ export const App: React.FC = () => {
       if (auraNeon.isConfigured) {
         try {
           const cloud = await auraNeon.getQuotes();
-          if (Array.isArray(cloud) && cloud.length > 0) {
-            /* cloud hydrate is best-effort; local seed already present */
-          }
-        } catch {
-          /* offline ok */
-        }
+        } catch { }
       }
-
       if (!cancelled) await loadDaily();
     })();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [loadDaily]);
 
   const handleAuth = useCallback(
     (u: AuraUser) => {
       setUser(u);
       setShowAuthGate(false);
-      showToast(`Welcome, ${u.givenName || u.name}! UID: ${u.uid}`, 'success');
+      showToast(`Welcome, ${u.givenName || u.name}!`, 'success');
       playChime(660);
       void auraNeon.syncUser(u);
-      void (async () => {
-        try {
-          const remoteFavs = await auraNeon.getFavorites(u.uid);
-          if (Array.isArray(remoteFavs) && remoteFavs.length > 0) {
-            /* merge favorites is optional; local toggle already persists */
-          }
-        } catch {
-          /* ignore */
-        }
-      })();
     },
     [showToast, playChime]
   );
@@ -211,47 +158,15 @@ export const App: React.FC = () => {
     [handleGenerateNext]
   );
 
-  const handleSelectStratum = useCallback(
-    (category: string) => {
-      if (!requireAuth()) return;
-      playChime(640);
-      setActiveCategory(category);
-      void handleGenerateNext(category);
-      document.getElementById('quoteSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    },
-    [handleGenerateNext, playChime, requireAuth]
-  );
-
-  const handleSelectDiscoveryPin = useCallback(
-    (pinData: Partial<Quote>) => {
-      playChime(720);
-      const tempQuote: Quote = {
-        id: `pin-${Date.now()}`,
-        text: pinData.text || '',
-        author: pinData.author || 'Ancient Strata',
-        category: pinData.category || 'Wisdom',
-        tags: pinData.tags || ['geology'],
-        theme: 'lithos',
-        isCustom: false,
-      };
-      setCurrentQuote(tempQuote);
-      setIsDaily(false);
-      setIsFav(false);
-      document.getElementById('quoteSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    },
-    [playChime]
-  );
-
   const handleToggleFavorite = useCallback(async () => {
-    if (!currentQuote) return;
-    if (!requireAuth()) return;
+    if (!currentQuote || !requireAuth()) return;
     vibrate(15);
     const next = await auraDB.toggleFavorite(currentQuote.id);
     setIsFav(next);
     playChime(next ? 700 : 400);
     showToast(next ? 'Saved to your Favorites!' : 'Removed from Favorites', 'info');
     if (user) void auraNeon.syncFavorite(user.uid, currentQuote.id, next ? 'add' : 'remove');
-  }, [currentQuote, isFav, playChime, requireAuth, showToast, user]);
+  }, [currentQuote, requireAuth, playChime, showToast, user]);
 
   const handleCopy = useCallback(async () => {
     if (!currentQuote) return;
@@ -270,9 +185,7 @@ export const App: React.FC = () => {
     vibrate(10);
     const text = `"${currentQuote.text}" — ${currentQuote.author}`;
     if (navigator.share) {
-      navigator
-        .share({ title: 'Lithos • AuraQuote', text, url: window.location.href })
-        .catch(() => void handleCopy());
+      navigator.share({ title: 'AuraQuote', text, url: window.location.href }).catch(() => void handleCopy());
     } else {
       void handleCopy();
     }
@@ -286,29 +199,21 @@ export const App: React.FC = () => {
       setIsDaily(false);
       setIsFav(false);
       playChime(800);
-      showToast('Quote archived into your permanent stratum!', 'success');
+      showToast('Quote saved to your vault!', 'success');
       if (user) void auraNeon.insertQuote(created);
       document.getElementById('quoteSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
     [playChime, requireAuth, showToast, user]
   );
 
-  const handleNavigateSection = useCallback(
-    (sectionId: string) => {
-      playChime(480);
-      if (sectionId === 'lithosHero') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-      }
-    },
-    [playChime]
-  );
-
-  const handleSetTheme = useCallback((t: ThemeName) => {
-    vibrate(8);
-    setTheme(t);
-  }, []);
+  const handleNavigateSection = useCallback((sectionId: string) => {
+    playChime(480);
+    if (sectionId === 'hero') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [playChime]);
 
   const handleToggleAudio = useCallback(() => {
     vibrate(8);
@@ -328,7 +233,6 @@ export const App: React.FC = () => {
 
   const closeModals = useCallback(() => setActiveModal(null), []);
 
-  /* Keyboard shortcuts */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement | null)?.tagName ?? '';
@@ -336,12 +240,7 @@ export const App: React.FC = () => {
         if (e.key === 'Escape') closeModals();
         return;
       }
-
-      if (e.key === 'Escape') {
-        closeModals();
-        return;
-      }
-
+      if (e.key === 'Escape') return closeModals();
       if (!user) return;
 
       if (e.code === 'Space') {
@@ -349,8 +248,6 @@ export const App: React.FC = () => {
         void handleGenerateNext();
       } else if (e.key === 'c' || e.key === 'C') {
         void handleCopy();
-      } else if (e.key === 'l' || e.key === 'L') {
-        /* speech is handled inside QuoteCard; open nothing */
       } else if (e.key === 'p' || e.key === 'P') {
         openModal('export');
       } else if (e.key === 'f' || e.key === 'F') {
@@ -363,96 +260,63 @@ export const App: React.FC = () => {
         openModal('shortcuts');
       }
     };
-
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [
-    closeModals,
-    handleCopy,
-    handleGenerateNext,
-    handleToggleFavorite,
-    openModal,
-    user,
-  ]);
-
-  /* Update streak on day change via countdown is inside QuoteCard */
+  }, [closeModals, handleCopy, handleGenerateNext, handleToggleFavorite, openModal, user]);
 
   return (
-    <div className="min-h-screen bg-[#090A0F] text-white selection:bg-[#e8702a]/30 selection:text-[#ff9d63] relative">
-      <AmbientLayers />
+    <div className="min-h-screen relative flex flex-col">
+      <Navbar
+        user={user}
+        streak={streak}
+        isAudioOn={isAudioOn}
+        onToggleAudio={handleToggleAudio}
+        onOpenCreate={() => { if (requireAuth()) openModal('create'); }}
+        onOpenVault={() => openModal('vault')}
+        onNavigateSection={handleNavigateSection}
+      />
 
-      <PixelRevealCurtain replayKey={revealKey} message="Curating daily inspiration..." />
-
-      <div className="relative z-10">
-        <Navbar
+      <div className="fixed top-20 right-4 z-[60] hidden md:block">
+        <UserMenu
           user={user}
-          streak={streak}
-          isAudioOn={isAudioOn}
-          onToggleAudio={handleToggleAudio}
-          onOpenCreate={() => {
-            if (requireAuth()) openModal('create');
-          }}
-          onOpenVault={() => openModal('vault')}
-          onNavigateSection={handleNavigateSection}
+          theme={'lithos' as ThemeName} // Hardcoded or removed
+          onSetTheme={() => {}}
+          onSignOut={handleSignOut}
+          onOpenNeon={() => openModal('neon')}
+          onOpenShortcuts={() => openModal('shortcuts')}
+          onReplayReveal={() => {}}
+          onShowToast={showToast}
         />
-
-        {/* User menu sits over navbar right edge on desktop */}
-        <div className="fixed top-3.5 right-4 sm:right-8 z-[60] hidden md:block">
-          <UserMenu
-            user={user}
-            theme={theme}
-            onSetTheme={handleSetTheme}
-            onSignOut={handleSignOut}
-            onOpenNeon={() => openModal('neon')}
-            onOpenShortcuts={() => openModal('shortcuts')}
-            onReplayReveal={() => setRevealKey((k) => k + 1)}
-            onShowToast={showToast}
-          />
-        </div>
-
-        <SpotlightHero
-          onStartDigging={() => {
-            void handleGenerateNext();
-            document.getElementById('quoteSection')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          onExploreDaily={() => {
-            document.getElementById('quoteSection')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          onSelectDiscoveryPin={handleSelectDiscoveryPin}
-        />
-
-        <main id="quoteSection" className="py-20 px-4 sm:px-8 relative z-10 max-w-7xl mx-auto">
-          <QuoteCard
-            quote={currentQuote}
-            isDaily={isDaily}
-            isFavorite={isFav}
-            onToggleFavorite={() => void handleToggleFavorite()}
-            onCopy={() => void handleCopy()}
-            onOpenExport={() => openModal('export')}
-            onShare={handleShare}
-            onReturnToDaily={() => void returnToDaily()}
-          />
-
-          <CategoryChips
-            activeCategory={activeCategory}
-            onSelectCategory={handleSelectCategory}
-            onGenerateNext={() => void handleGenerateNext(activeCategory)}
-          />
-        </main>
-
-        <WisdomStrata onSelectStratum={handleSelectStratum} />
-        <Footer />
       </div>
 
-      <MobileNav
-        isDaily={isDaily}
-        onToday={() => void returnToDaily()}
-        onGenerate={() => void handleGenerateNext()}
-        onCreate={() => {
-          if (requireAuth()) openModal('create');
+      <Hero 
+        onStart={() => {
+          document.getElementById('quoteSection')?.scrollIntoView({ behavior: 'smooth' });
         }}
-        onVault={() => openModal('vault')}
+        quote={currentQuote} 
       />
+
+      <main id="quoteSection" className="relative z-10 flex-1 w-full pt-12 pb-8 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col">
+        <QuoteCard
+          quote={currentQuote}
+          isDaily={isDaily}
+          isFavorite={isFav}
+          onToggleFavorite={handleToggleFavorite}
+          onCopy={handleCopy}
+          onOpenExport={() => openModal('export')}
+          onShare={handleShare}
+          onReturnToDaily={returnToDaily}
+        />
+        
+        <CategoryChips
+          activeCategory={activeCategory}
+          onSelectCategory={handleSelectCategory}
+          onGenerateNext={() => handleGenerateNext(activeCategory)}
+        />
+      </main>
+
+      <Features />
+      <Footer />
 
       <AuthGate
         isOpen={showAuthGate}
@@ -465,7 +329,7 @@ export const App: React.FC = () => {
       <CreateModal
         isOpen={activeModal === 'create'}
         onClose={closeModals}
-        onQuoteCreated={(q) => void handleQuoteCreated(q)}
+        onQuoteCreated={handleQuoteCreated}
         onShowToast={showToast}
       />
 
@@ -497,7 +361,6 @@ export const App: React.FC = () => {
       />
 
       <ShortcutsModal isOpen={activeModal === 'shortcuts'} onClose={closeModals} />
-
       <Toast toast={toast} />
     </div>
   );

@@ -26,7 +26,6 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
   const [countdown, setCountdown] = useState('--:--:--');
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Midnight countdown timer
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
@@ -66,134 +65,116 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
 
   if (!quote) {
     return (
-      <div className="glass-card max-w-3xl w-full mx-auto p-12 rounded-3xl text-center text-white/50 font-mono">
-        Materializing wisdom...
+      <div className="card max-w-3xl w-full mx-auto p-12 text-center text-muted-foreground font-medium text-lg border-dashed">
+        Curating daily inspiration...
       </div>
     );
   }
 
   return (
-    <article
-      id="quoteCard"
-      className="glass-card max-w-3xl w-full mx-auto p-8 sm:p-12 rounded-3xl relative overflow-hidden transition-all duration-300 border border-[#e8702a]/30 shadow-2xl"
-    >
-      {/* Giant Decorative Quotation Mark */}
+    <article id="quoteCard" className="card max-w-3xl w-full mx-auto relative overflow-hidden group">
       <span
-        className="absolute top-2 left-6 text-8xl sm:text-9xl font-serif text-[#e8702a]/15 select-none pointer-events-none"
+        className="absolute top-4 left-6 text-9xl text-blue-50 font-serif select-none pointer-events-none -z-10"
         aria-hidden="true"
       >
         “
       </span>
 
-      {/* Header Row: Daily Badge + Countdown */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-8 relative z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e8702a]/15 border border-[#e8702a]/30 text-[#ff9d63] text-xs font-mono font-semibold">
-          <Sparkles size={12} />
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-10 relative z-10">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-primary text-xs font-semibold uppercase tracking-wider">
+          <Sparkles size={14} />
           <span>{isDaily ? 'Quote of the Day' : 'Exploration Mode'}</span>
           {!isDaily && onReturnToDaily && (
             <button
               onClick={onReturnToDaily}
-              className="underline opacity-80 hover:opacity-100 ml-1 cursor-pointer"
+              className="underline ml-1 cursor-pointer hover:text-blue-700"
             >
-              (Return to Daily)
+              (Return)
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs font-mono text-white/50 bg-white/5 px-3 py-1 rounded-full border border-white/10">
-          <Clock size={12} className="text-[#e8702a]" />
-          <span>Resets in: <strong className="text-white font-bold">{countdown}</strong></span>
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border">
+          <Clock size={14} className="text-primary" />
+          <span>Resets in: <strong className="text-foreground">{countdown}</strong></span>
         </div>
       </div>
 
-      {/* Quote Text */}
-      <div className="relative z-10 mb-8">
-        <blockquote className="font-playfair italic text-2xl sm:text-4xl lg:text-5xl text-white font-normal leading-[1.25] tracking-tight">
+      <div className="relative z-10 mb-10 pl-4 border-l-4 border-primary">
+        <blockquote className="text-3xl sm:text-4xl lg:text-5xl text-foreground font-bold leading-tight tracking-tight">
           "{quote.text}"
         </blockquote>
       </div>
 
-      {/* Author & Category Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10 relative z-10">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-border relative z-10">
         <div className="flex items-center gap-3">
-          <span className="text-base sm:text-lg font-semibold text-[#ff9d63] font-sans">
+          <span className="text-lg sm:text-xl font-semibold text-secondary">
             — {quote.author || 'Anonymous'}
           </span>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-white/80 border border-white/15">
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200 uppercase tracking-wider">
             {quote.category || 'Wisdom'}
           </span>
         </div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {quote.tags && quote.tags.map((t, idx) => (
-            <span key={idx} className="text-[11px] font-mono text-white/40">
+            <span key={idx} className="text-xs font-medium text-muted-foreground bg-white px-2 py-1 rounded border border-border">
               #{t}
             </span>
           ))}
         </div>
       </div>
 
-      {/* Action Toolbar */}
       <div className="flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2">
-          {/* Read Aloud Button */}
           <button
             onClick={handleSpeech}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border transition-all cursor-pointer ${
               isSpeaking
-                ? 'bg-[#e8702a] border-[#e8702a] text-white shadow-lg shadow-[#e8702a]/30 animate-pulse'
-                : 'bg-white/5 hover:bg-white/15 border-white/10 text-white/70 hover:text-white'
+                ? 'bg-primary border-primary text-white shadow-md shadow-primary/30 animate-pulse'
+                : 'bg-white hover:bg-muted border-border text-muted-foreground hover:text-foreground shadow-sm'
             }`}
-            title="Read quote aloud (Web Speech API)"
-            aria-label="Listen to quote"
+            title="Read quote aloud"
           >
-            {isSpeaking ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            {isSpeaking ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
 
-          {/* Copy Button */}
           <button
             onClick={onCopy}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-white/70 hover:text-white transition-all cursor-pointer"
+            className="p-3 rounded-xl bg-white hover:bg-muted border border-border text-muted-foreground hover:text-foreground shadow-sm transition-all cursor-pointer"
             title="Copy quote text"
-            aria-label="Copy quote text"
           >
-            <Copy size={18} />
+            <Copy size={20} />
           </button>
 
-          {/* Export PNG Poster Button */}
           <button
             onClick={onOpenExport}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-white/70 hover:text-white transition-all cursor-pointer"
-            title="Export aesthetic poster (PNG)"
-            aria-label="Export quote poster"
+            className="p-3 rounded-xl bg-white hover:bg-muted border border-border text-muted-foreground hover:text-foreground shadow-sm transition-all cursor-pointer"
+            title="Export poster (PNG)"
           >
-            <ImageIcon size={18} />
+            <ImageIcon size={20} />
           </button>
 
-          {/* Share Button */}
           <button
             onClick={onShare}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-white/70 hover:text-white transition-all cursor-pointer"
+            className="p-3 rounded-xl bg-white hover:bg-muted border border-border text-muted-foreground hover:text-foreground shadow-sm transition-all cursor-pointer"
             title="Share quote"
-            aria-label="Share quote"
           >
-            <Share2 size={18} />
+            <Share2 size={20} />
           </button>
         </div>
 
-        {/* Favorite Bookmark */}
         <button
           onClick={onToggleFavorite}
-          className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 font-semibold shadow-sm ${
             isFavorite
-              ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
-              : 'bg-white/5 hover:bg-white/15 border-white/10 text-white/70 hover:text-white'
+              ? 'bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100'
+              : 'bg-white hover:bg-muted border-border text-muted-foreground hover:text-foreground'
           }`}
           title={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
-          aria-label="Favorite quote"
         >
-          <Heart size={18} fill={isFavorite ? 'currentColor' : 'none'} />
+          <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
+          <span className="hidden sm:inline">{isFavorite ? 'Saved' : 'Save'}</span>
         </button>
       </div>
     </article>

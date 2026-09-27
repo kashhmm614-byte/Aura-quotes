@@ -3,30 +3,26 @@ import { Compass, Globe } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="py-12 px-4 sm:px-8 bg-black border-t border-white/10 text-white/50 text-xs">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+    <footer className="py-12 px-4 sm:px-8 bg-white border-t border-border text-muted-foreground text-sm">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 rounded bg-[#e8702a] flex items-center justify-center p-1 shadow-md">
-            <svg width="14" height="14" viewBox="0 0 256 256" fill="#ffffff">
-              <path d="M 256 256 L 128 256 L 0 128 L 128 128 Z M 256 128 L 128 128 L 0 0 L 128 0 Z" />
-            </svg>
+          <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-md">
+            <Compass size={18} />
           </div>
-          <span className="font-playfair text-white text-base italic">Lithos • AuraQuote</span>
-          <span className="text-white/30">•</span>
-          <span>4.543 Billion Years of Planetary & Human Wisdom</span>
+          <span className="font-semibold text-foreground text-base">AuraQuote</span>
+          <span className="text-border mx-2">|</span>
+          <span>Daily inspiration for modern minds.</span>
         </div>
 
-        <div className="flex items-center gap-6 font-mono text-[11px]">
-          <a href="#lithosHero" className="hover:text-white transition-colors">Overview</a>
-          <a href="#quoteCard" className="hover:text-white transition-colors">Daily Quote</a>
-          <a href="#wisdomStrata" className="hover:text-white transition-colors">Wisdom Strata</a>
+        <div className="flex items-center gap-6 font-medium">
+          <a href="#hero" className="hover:text-primary transition-colors">Overview</a>
+          <a href="#quoteSection" className="hover:text-primary transition-colors">Quotes</a>
+          <a href="#features" className="hover:text-primary transition-colors">Features</a>
         </div>
 
-        <div className="flex items-center gap-4 text-[11px] text-white/40">
-          <div className="flex items-center gap-1.5">
-            <Globe size={13} className="text-[#e8702a]" />
-            <span>Open Planetary Archive</span>
-          </div>
+        <div className="flex items-center gap-2 text-xs font-medium">
+          <Globe size={14} className="text-primary" />
+          <span>Syncing Globally</span>
         </div>
       </div>
     </footer>
