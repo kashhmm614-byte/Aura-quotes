@@ -8,27 +8,24 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onStart }) => {
   return (
-    <section className="py-24 md:py-32 flex flex-col items-center justify-center text-center px-4 max-w-3xl mx-auto">
-      <div className="space-y-6">
-        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-          Daily Inspiration
-        </div>
-        
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-6xl text-foreground">
-          Discover words that inspire action.
-        </h1>
-        
-        <p className="text-xl text-muted-foreground">
-          AuraQuote brings you a curated collection of powerful quotes to fuel your creativity, motivation, and daily focus.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <button onClick={onStart} className="btn-primary w-full sm:w-auto h-11 px-8">
-            Get Today's Quote
-          </button>
-          <a href="#features" className="btn-secondary w-full sm:w-auto h-11 px-8">
-            Learn More
-          </a>
+    <section className="min-h-screen flex flex-col justify-center px-4 md:px-16 pt-16">
+      <div className="max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-end border-b border-white/20 pb-12">
+          <div className="md:col-span-8">
+            <h1 className="text-5xl md:text-8xl lg:text-9xl font-serif font-light tracking-tight leading-none text-white uppercase">
+              Words
+              <br />
+              <span className="italic text-white/70">In Motion</span>
+            </h1>
+          </div>
+          <div className="md:col-span-4 flex flex-col items-start md:items-end justify-end space-y-8">
+            <p className="text-sm uppercase tracking-widest text-white/50 max-w-xs text-left md:text-right font-sans">
+              A carefully curated collection of powerful quotes to fuel your creativity and daily focus.
+            </p>
+            <button onClick={onStart} className="btn-primary w-full md:w-auto">
+              Read Today's Quote
+            </button>
+          </div>
         </div>
       </div>
     </section>

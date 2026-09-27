@@ -1,40 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, serif;
   
-  --color-background: #ffffff;
-  --color-foreground: #09090b;
+  --color-background: #000000;
+  --color-foreground: #ffffff;
   
-  --color-card: #ffffff;
-  --color-card-foreground: #09090b;
+  --color-card: transparent;
+  --color-card-foreground: #ffffff;
   
-  --color-popover: #ffffff;
-  --color-popover-foreground: #09090b;
+  --color-border: rgba(255, 255, 255, 0.15);
+  --color-muted: rgba(255, 255, 255, 0.6);
+  --color-accent: #ffffff;
+  --color-accent-foreground: #000000;
   
-  --color-primary: #18181b;
-  --color-primary-foreground: #fafafa;
-  
-  --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #18181b;
-  
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
-  
-  --color-accent: #f4f4f5;
-  --color-accent-foreground: #18181b;
-  
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-ring: #18181b;
-  
-  --radius-lg: 0.5rem;
-  --radius-md: calc(0.5rem - 2px);
-  --radius-sm: calc(0.5rem - 4px);
+  --radius-lg: 0px;
+  --radius-md: 0px;
+  --radius-sm: 0px;
 }
 
 body {
@@ -44,61 +27,81 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Base Components (Shadcn-like) */
+/* Film Grain Overlay */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Brutalist Utilities */
 .btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
+  background-color: var(--color-foreground);
+  color: var(--color-background);
+  padding: 1rem 2rem;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
   font-weight: 500;
-  font-size: 0.875rem;
-  transition: opacity 200ms ease;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-foreground);
+  transition: all 300ms ease;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
+  background-color: transparent;
+  color: var(--color-foreground);
 }
 
 .btn-secondary {
   background-color: transparent;
   color: var(--color-foreground);
-  border: 1px solid var(--color-input);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-foreground);
+  padding: 1rem 2rem;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
   font-weight: 500;
-  font-size: 0.875rem;
-  transition: background-color 200ms ease;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  transition: all 300ms ease;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .btn-secondary:hover {
-  background-color: var(--color-accent);
-  color: var(--color-accent-foreground);
+  background-color: var(--color-foreground);
+  color: var(--color-background);
 }
 
 .card {
-  background-color: var(--color-card);
-  color: var(--color-card-foreground);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  background-color: transparent;
+  color: var(--color-foreground);
   border: 1px solid var(--color-border);
+  padding: 3rem;
 }
 
-@keyframes toastIn {
-  0% { opacity: 0; transform: translateY(12px) scale(0.96); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+.nav-link {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-foreground);
+  transition: opacity 300ms ease;
 }
 
-.toast-in { animation: toastIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.nav-link:hover {
+  opacity: 0.5;
+}

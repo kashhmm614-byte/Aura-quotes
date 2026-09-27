@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Copy, Image as ImageIcon, Share2, Heart, Clock } from 'lucide-react';
 import type { Quote } from '../types';
 
 interface QuoteCardProps {
@@ -59,70 +58,61 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
 
   if (!quote) {
     return (
-      <div className="card max-w-3xl w-full mx-auto p-12 text-center text-muted-foreground font-medium text-sm border-dashed">
-        Loading inspiration...
+      <div className="min-h-[50vh] flex items-center justify-center text-white/50 text-xs uppercase tracking-widest">
+        Loading...
       </div>
     );
   }
 
   return (
-    <article className="card max-w-3xl w-full mx-auto relative flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground">
-          {isDaily ? 'Quote of the Day' : 'Exploration Mode'}
-          {!isDaily && onReturnToDaily && (
-            <button onClick={onReturnToDaily} className="ml-2 hover:underline text-muted-foreground">
-              (Reset)
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{countdown}</span>
-        </div>
+    <article className="max-w-7xl mx-auto px-4 md:px-16 py-24 flex flex-col min-h-screen justify-center relative">
+      <div className="absolute top-8 left-4 md:left-16 flex items-center gap-4 text-xs uppercase tracking-widest font-sans text-white/50">
+        <span>{isDaily ? 'DAILY FEATURE' : 'EXPLORE'}</span>
+        {!isDaily && onReturnToDaily && (
+          <button onClick={onReturnToDaily} className="hover:text-white transition-colors">
+            [ RESET ]
+          </button>
+        )}
       </div>
 
-      <div className="py-6">
-        <blockquote className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-          "{quote.text}"
+      <div className="absolute top-8 right-4 md:right-16 text-xs uppercase tracking-widest font-sans text-white/50">
+        TIME REMAINING: {countdown}
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-12 md:gap-24 items-start md:items-center">
+        <blockquote className="flex-1 text-4xl md:text-6xl lg:text-7xl font-serif font-light leading-tight text-white tracking-normal">
+          {quote.text}
         </blockquote>
-      </div>
+        
+        <div className="w-full md:w-64 flex-shrink-0 flex flex-col space-y-8 border-l border-white/20 pl-8">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-white/50 mb-2 font-sans">Author</p>
+            <p className="text-xl font-serif text-white uppercase">{quote.author || 'Anonymous'}</p>
+          </div>
+          
+          <div>
+            <p className="text-xs uppercase tracking-widest text-white/50 mb-2 font-sans">Category</p>
+            <p className="text-sm uppercase tracking-widest font-sans text-white">{quote.category}</p>
+          </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <p className="font-medium text-foreground">— {quote.author || 'Anonymous'}</p>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium">{quote.category}</span>
-            {quote.tags && quote.tags.length > 0 && (
-              <>
-                <span className="text-muted-foreground text-xs">•</span>
-                <span className="text-xs text-muted-foreground">#{quote.tags[0]}</span>
-              </>
-            )}
+          <div className="pt-8 border-t border-white/20 flex flex-col gap-4">
+            <button onClick={handleSpeech} className="text-left text-xs uppercase tracking-widest font-sans hover:text-white/50 transition-colors">
+              {isSpeaking ? 'STOP AUDIO' : 'PLAY AUDIO'}
+            </button>
+            <button onClick={onCopy} className="text-left text-xs uppercase tracking-widest font-sans hover:text-white/50 transition-colors">
+              COPY TEXT
+            </button>
+            <button onClick={onOpenExport} className="text-left text-xs uppercase tracking-widest font-sans hover:text-white/50 transition-colors">
+              EXPORT ART
+            </button>
+            <button onClick={onShare} className="text-left text-xs uppercase tracking-widest font-sans hover:text-white/50 transition-colors">
+              SHARE
+            </button>
+            <button onClick={onToggleFavorite} className={`text-left text-xs uppercase tracking-widest font-sans transition-colors ${isFavorite ? 'text-white' : 'hover:text-white/50'}`}>
+              {isFavorite ? '[ SAVED ]' : 'SAVE TO VAULT'}
+            </button>
           </div>
         </div>
-      </div>
-
-      <div className="flex items-center justify-between pt-4 border-t">
-        <div className="flex items-center gap-1">
-          <button onClick={handleSpeech} className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9 ${isSpeaking ? 'bg-accent text-accent-foreground' : ''}`} title="Read quote aloud">
-            {isSpeaking ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          </button>
-          <button onClick={onCopy} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Copy text">
-            <Copy className="w-4 h-4" />
-          </button>
-          <button onClick={onOpenExport} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Export">
-            <ImageIcon className="w-4 h-4" />
-          </button>
-          <button onClick={onShare} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Share">
-            <Share2 className="w-4 h-4" />
-          </button>
-        </div>
-
-        <button onClick={onToggleFavorite} className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors h-9 px-4 py-2 border gap-2 ${isFavorite ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100' : 'bg-transparent hover:bg-accent hover:text-accent-foreground'}`}>
-          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-          <span className="hidden sm:inline">{isFavorite ? 'Saved' : 'Save'}</span>
-        </button>
       </div>
     </article>
   );

@@ -1,5 +1,4 @@
 import React from 'react';
-import { RefreshCw } from 'lucide-react';
 
 interface CategoryChipsProps {
   activeCategory: string;
@@ -25,32 +24,28 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
   onGenerateNext,
 }) => {
   return (
-    <section className="max-w-3xl mx-auto px-4 mt-8 flex flex-col items-center gap-8 pb-16">
-      <button
-        onClick={onGenerateNext}
-        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 gap-2"
-      >
-        <RefreshCw className="w-4 h-4" />
-        <span>Generate New Quote</span>
-      </button>
+    <section className="max-w-7xl mx-auto px-4 md:px-16 py-12 border-t border-white/20">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+        <button onClick={onGenerateNext} className="btn-secondary">
+          Next Quote
+        </button>
 
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {CATEGORIES.map((cat) => {
-          const isActive = activeCategory === cat.id;
-          return (
-            <button
-              key={cat.id}
-              onClick={() => onSelectCategory(cat.id)}
-              className={`inline-flex items-center rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-                isActive
-                  ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80'
-                  : 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
-            >
-              {cat.label}
-            </button>
-          );
-        })}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.id)}
+                className={`text-xs uppercase tracking-widest font-sans transition-opacity hover:opacity-100 ${
+                  isActive ? 'opacity-100 font-bold border-b border-white pb-1' : 'opacity-50'
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

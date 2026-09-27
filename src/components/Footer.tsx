@@ -1,28 +1,16 @@
 import React from 'react';
-import { Compass, Globe } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="py-12 px-4 sm:px-8 bg-white border-t border-border text-muted-foreground text-sm">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-md">
-            <Compass size={18} />
-          </div>
-          <span className="font-semibold text-foreground text-base">AuraQuote</span>
-          <span className="text-border mx-2">|</span>
-          <span>Daily inspiration for modern minds.</span>
+    <footer className="py-12 px-4 md:px-16 border-t border-white/20 text-center md:text-left">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs uppercase tracking-widest font-sans text-white/50">
+        <div>
+          &copy; {new Date().getFullYear()} AURAQUOTE
         </div>
-
-        <div className="flex items-center gap-6 font-medium">
-          <a href="#hero" className="hover:text-primary transition-colors">Overview</a>
-          <a href="#quoteSection" className="hover:text-primary transition-colors">Quotes</a>
-          <a href="#features" className="hover:text-primary transition-colors">Features</a>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs font-medium">
-          <Globe size={14} className="text-primary" />
-          <span>Syncing Globally</span>
+        <div className="flex items-center gap-8">
+          <a href="#" className="hover:text-white transition-colors">TERMS</a>
+          <a href="#" className="hover:text-white transition-colors">PRIVACY</a>
+          <a href="#" className="hover:text-white transition-colors">ABOUT</a>
         </div>
       </div>
     </footer>
