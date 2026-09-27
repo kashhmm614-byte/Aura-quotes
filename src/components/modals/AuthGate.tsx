@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import type { AuraUser, ModalType } from '../../types';
 import { initGoogleAuth, clearStoredUser } from '../../lib/auth';
-import { X, LogOut, Sparkles } from 'lucide-react';
+import { X, LogOut, Sparkles, Hash } from 'lucide-react';
 
 interface AuthGateProps {
   onClose: () => void;
@@ -90,6 +90,14 @@ export function UserAvatar({ user, onLogout }: { user: AuraUser; onLogout: () =>
             <div className="min-w-0">
               <p className="text-white text-sm font-semibold truncate">{user.name}</p>
               <p className="text-white/50 text-xs truncate">{user.email}</p>
+            </div>
+          </div>
+          
+          <div className="mb-3 pb-3 border-b border-white/10 px-1">
+            <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1">Aura ID</p>
+            <div className="flex items-center gap-2 text-purple-300 bg-purple-500/10 rounded-lg p-2 border border-purple-500/20">
+              <Hash size={14} className="opacity-70" />
+              <span className="font-mono text-sm tracking-wider">{user.uid}</span>
             </div>
           </div>
           <button

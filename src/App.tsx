@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Quote, AuraUser, ModalType, CategoryName } from './types';
 import { seedIfEmpty, getRandomQuote, getQuoteOfTheDay, addFavorite, removeFavorite, isFavorite } from './lib/db';
-import { getStoredUser } from './lib/auth';
+import { getStoredUser, initGoogleAuth } from './lib/auth';
 import { speak, stopSpeaking } from './lib/lithos';
 import { playSound } from './lib/sounds';
 import { useShortcuts } from './hooks/useShortcuts';
@@ -21,10 +21,14 @@ const CATEGORIES: CategoryName[] = [
 ];
 
 export default function App() {
+  // Splash phase: 'login' | 'animating' | 'ready'
+  const [splashPhase, setSplashPhase] = useState<'login' | 'animating' | 'ready'>('login');
+  const [googleLoading, setGoogleLoading] = useState(true);
+
   const [history, setHistory] = useState<Quote[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
-  const [refreshKey, setRefreshKey] = useState(0); // Forces re-render for animation
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isFav, setIsFav] = useState(false);
@@ -39,13 +43,17 @@ export default function App() {
 
   const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => setToast({ msg, type });
 
-  // Boot sequence
+  // Check if user is already logged in
   useEffect(() => {
     (async () => {
       try {
         await seedIfEmpty();
         const u = getStoredUser();
-        if (u) setUser(u);
+        if (u) {
+          setUser(u);
+          setSplashPhase('animating');
+          setTimeout(() => setSplashPhase('ready'), 2800);
+        }
       } catch (err) {
         console.error("Boot error:", err);
       } finally {
@@ -168,6 +176,21 @@ export default function App() {
     }
   });
 
+  // Google login button ref for the login screen
+  const loginBtnRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return;
+    const timer = setTimeout(() => {
+      initGoogleAuth(el, (u) => {
+        setUser(u);
+        setSplashPhase('animating');
+        setTimeout(() => setSplashPhase('ready'), 2800);
+        showToast(`Welcome, ${u.name}! ✨`);
+      });
+      setGoogleLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
@@ -196,8 +219,115 @@ export default function App() {
     touchEndX.current = 0;
   };
 
+  // ═══════════════════════════════════════════
+  // PHASE 1: Login Screen (mandatory)
+  // ═══════════════════════════════════════════
+  if (splashPhase === 'login') {
+    return (
+      <div className="min-h-screen flex flex-col relative overflow-hidden">
+        {/* Background */}
+        <div className="dynamic-bg" aria-hidden="true" />
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-[1]" aria-hidden="true">
+          <div className="orb-1 absolute w-[600px] h-[600px] rounded-full bg-purple-600/[0.10] blur-[160px] -top-60 -left-48" />
+          <div className="orb-2 absolute w-[500px] h-[500px] rounded-full bg-cyan-500/[0.07] blur-[140px] top-1/3 -right-44" />
+          <div className="orb-3 absolute w-[420px] h-[420px] rounded-full bg-fuchsia-500/[0.05] blur-[130px] -bottom-36 left-1/4" />
+        </div>
+
+        <div className="relative z-10 flex-1 flex items-center justify-center px-4">
+          <div className="glass-strong rounded-3xl p-8 md:p-12 max-w-md w-full animate-scale-in text-center">
+            {/* Logo */}
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center shadow-2xl animate-breathe">
+              <Sparkles size={36} className="text-white" />
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight">
+              Aura<span className="gradient-text">Quote</span>
+            </h1>
+            <p className="text-white/40 text-sm mb-8 leading-relaxed">
+              Your daily dose of curated inspiration.<br />
+              Sign in to begin your journey.
+            </p>
+
+            {/* Google Sign-In */}
+            <div className="flex justify-center min-h-[48px] mb-6">
+              {googleLoading && (
+                <div className="text-white/40 text-sm animate-pulse flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-purple-400 rounded-full animate-spin" />
+                  Preparing Sign-In...
+                </div>
+              )}
+              <div ref={loginBtnRef} className={googleLoading ? 'opacity-0 absolute' : ''} />
+            </div>
+
+            <div className="flex items-center gap-3 justify-center text-white/20 text-[10px] uppercase tracking-widest">
+              <span>Private</span>
+              <span>·</span>
+              <span>Secure</span>
+              <span>·</span>
+              <span>Free</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  // PHASE 2: Splash Animation
+  // ═══════════════════════════════════════════
+  if (splashPhase === 'animating') {
+    return (
+      <div className="min-h-screen flex flex-col relative overflow-hidden">
+        {/* Background */}
+        <div className="dynamic-bg" aria-hidden="true" />
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-[1]" aria-hidden="true">
+          <div className="orb-1 absolute w-[600px] h-[600px] rounded-full bg-purple-600/[0.15] blur-[160px] -top-60 -left-48" />
+          <div className="orb-2 absolute w-[500px] h-[500px] rounded-full bg-cyan-500/[0.10] blur-[140px] top-1/3 -right-44" />
+          <div className="orb-3 absolute w-[420px] h-[420px] rounded-full bg-fuchsia-500/[0.08] blur-[130px] -bottom-36 left-1/4" />
+        </div>
+
+        <div className="relative z-10 flex-1 flex items-center justify-center">
+          <div className="text-center splash-container">
+            {/* Burst Ring */}
+            <div className="splash-ring" />
+
+            {/* Logo Zoom */}
+            <div className="splash-logo mb-6">
+              <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center shadow-2xl">
+                <Sparkles size={44} className="text-white" />
+              </div>
+            </div>
+
+            <h1 className="splash-text text-4xl md:text-5xl font-black text-white tracking-tight">
+              Welcome, <span className="gradient-text">{user?.name?.split(' ')[0]}</span>
+            </h1>
+            <p className="splash-subtitle text-white/40 text-sm mt-3">Your daily inspiration awaits...</p>
+
+            {/* Floating Particles */}
+            <div className="splash-particles" aria-hidden="true">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="splash-particle"
+                  style={{
+                    '--angle': `${i * 30}deg`,
+                    '--delay': `${i * 0.08}s`,
+                    '--distance': `${80 + Math.random() * 60}px`,
+                  } as React.CSSProperties}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  // PHASE 3: Main App (ready)
+  // ═══════════════════════════════════════════
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden app-reveal">
 
       {/* ═══ Dynamic Color-Shifting Background ═══ */}
       <div className="dynamic-bg" aria-hidden="true" />

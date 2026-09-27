@@ -484,3 +484,136 @@
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* ═══════════════════════════════════════════════
+   Splash Screen & App Reveal Animations
+   ═══════════════════════════════════════════════ */
+
+/* Container for all splash elements */
+.splash-container {
+  position: relative;
+}
+
+/* Logo zoom-in-and-glow effect */
+.splash-logo {
+  animation: splashLogoIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes splashLogoIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-20deg);
+    filter: blur(12px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15) rotate(3deg);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+/* Text slide-up-and-fade-in */
+.splash-text {
+  opacity: 0;
+  animation: splashTextIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+@keyframes splashTextIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Subtitle fade */
+.splash-subtitle {
+  opacity: 0;
+  animation: splashTextIn 0.6s ease-out 0.9s forwards;
+}
+
+/* Expanding burst ring */
+.splash-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  transform: translate(-50%, -50%);
+  animation: splashRingBurst 1.5s ease-out 0.2s forwards;
+  pointer-events: none;
+}
+@keyframes splashRingBurst {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+    border-width: 3px;
+  }
+  100% {
+    width: 600px;
+    height: 600px;
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+
+/* Individual particles that burst outward */
+.splash-particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.splash-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+  opacity: 0;
+  animation: particleBurst 1.2s ease-out var(--delay, 0s) forwards;
+  transform: translate(-50%, -50%);
+}
+@keyframes particleBurst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(0);
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(calc(var(--distance, 100px) * -1));
+  }
+}
+
+/* Main app reveal — smooth fade & slide up */
+.app-reveal {
+  animation: appRevealIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes appRevealIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
