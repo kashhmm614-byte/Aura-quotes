@@ -1,72 +1,63 @@
-import React, { useEffect, useRef } from 'react';
-import { initGoogleGIS } from '../lib/auth';
+import React from 'react';
 import type { AuraUser } from '../types';
 
 interface AuthGateProps {
   isOpen: boolean;
   user: AuraUser | null;
-  onAuth: (user: AuraUser) => void;
+  onAuth: (u: AuraUser) => void;
   onDemoLogin: () => void;
   onClose: () => void;
 }
 
 export const AuthGate: React.FC<AuthGateProps> = ({
   isOpen,
-  user,
-  onAuth,
   onDemoLogin,
-  onClose,
+  onClose
 }) => {
-  const gisRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isOpen || user) return;
-    if (gisRef.current) {
-      initGoogleGIS(gisRef.current, (u) => {
-        onAuth(u);
-        onClose();
-      });
-    }
-  }, [isOpen, user, onAuth, onClose]);
-
-  if (!isOpen || user) return null;
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[80] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
-      <div className="glass-card max-w-md w-full p-8 rounded-3xl border border-white/20 shadow-2xl text-center relative">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#e8702a] to-[#993b0b] flex items-center justify-center p-3 shadow-xl shadow-[#e8702a]/30 border border-[#e8702a]/40">
-          <svg width="28" height="28" viewBox="0 0 256 256" fill="#ffffff" aria-hidden="true">
-            <path d="M 256 256 L 128 256 L 0 128 L 128 128 Z M 256 128 L 128 128 L 0 0 L 128 0 Z" />
-          </svg>
-        </div>
-        <div className="text-xs font-mono uppercase tracking-widest text-[#e8702a] mb-2">
-          Member Access
-        </div>
-        <h2 className="text-2xl font-playfair text-white mb-2">Enter the Archive</h2>
-        <p className="text-sm text-white/60 mb-6 leading-relaxed">
-          Sign in with Google to unlock quote generation, favorites, and your permanent 10-digit member UID across devices.
-        </p>
-
-        <div ref={gisRef} className="flex justify-center min-h-[48px] mb-3" />
-
-        <button
-          type="button"
-          onClick={() => {
-            onDemoLogin();
-            onClose();
-          }}
-          className="w-full bg-[#e8702a] hover:bg-[#d2611f] text-white py-3 rounded-xl font-semibold text-sm transition-all hover:scale-[1.02] shadow-lg shadow-[#e8702a]/30 cursor-pointer"
-        >
-          Continue as Demo Member
-        </button>
-
-        <button
-          type="button"
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md">
+      <div className="max-w-2xl w-full p-8 md:p-16 border border-white/20 bg-black relative flex flex-col gap-12">
+        <button 
           onClick={onClose}
-          className="mt-3 text-xs text-white/40 hover:text-white/70 cursor-pointer"
+          className="absolute top-8 right-8 text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors"
         >
-          Browse without signing in
+          [ CLOSE ]
         </button>
+
+        <div className="space-y-4">
+          <h2 className="text-4xl md:text-5xl font-serif text-white uppercase tracking-wide">
+            Authentication
+            <br />
+            <span className="italic text-white/50">Required</span>
+          </h2>
+          <p className="text-sm font-sans tracking-wide text-white/70 max-w-sm">
+            Sign in to unlock your personal vault, save quotes, and track your daily streak.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={onDemoLogin}
+            className="btn-primary w-full"
+          >
+            Enter Demo Mode
+          </button>
+          
+          <div className="flex items-center gap-4 py-4">
+            <div className="flex-1 h-px bg-white/10"></div>
+            <span className="text-xs tracking-widest uppercase text-white/50">OR</span>
+            <div className="flex-1 h-px bg-white/10"></div>
+          </div>
+          
+          <button
+            onClick={() => alert("Google Login not configured in this environment.")}
+            className="btn-secondary w-full"
+          >
+            Sign in with Google
+          </button>
+        </div>
       </div>
     </div>
   );

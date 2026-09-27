@@ -1,144 +1,112 @@
 import React, { useState } from 'react';
-import { X, Sparkles } from 'lucide-react';
 import type { Quote } from '../../types';
-import { containsBadWords } from '../../lib/bad-words';
 
 interface CreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onQuoteCreated: (quote: Partial<Quote>) => void;
-  onShowToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+  onQuoteCreated: (q: Partial<Quote>) => Promise<void>;
+  onShowToast: (msg: string, type: 'info' | 'success' | 'error') => void;
 }
 
 export const CreateModal: React.FC<CreateModalProps> = ({
   isOpen,
   onClose,
   onQuoteCreated,
-  onShowToast,
+  onShowToast
 }) => {
   const [text, setText] = useState('');
   const [author, setAuthor] = useState('');
   const [category, setCategory] = useState('Wisdom');
-  const [tags, setTags] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!text.trim()) {
-      onShowToast('Please enter the quote words.', 'error');
+      onShowToast('Quote text is required.', 'error');
       return;
     }
-
-    if (containsBadWords(text) || containsBadWords(author) || containsBadWords(tags)) {
-      onShowToast('🚫 Inappropriate language detected. Quote rejected.', 'error');
-      return;
+    try {
+      setIsSubmitting(true);
+      await onQuoteCreated({
+        text: text.trim(),
+        author: author.trim() || 'Anonymous',
+        category,
+      });
+      setText('');
+      setAuthor('');
+      setCategory('Wisdom');
+      onClose();
+    } catch (err) {
+      onShowToast('Failed to create quote.', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    onQuoteCreated({
-      text: text.trim(),
-      author: author.trim() || 'You',
-      category,
-      tags: tags
-        .split(',')
-        .map((t) => t.trim().replace(/^#/, ''))
-        .filter(Boolean),
-    });
-
-    setText('');
-    setAuthor('');
-    setTags('');
-    onClose();
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="glass-card max-w-lg w-full p-6 sm:p-8 rounded-3xl border border-white/20 shadow-2xl relative animate-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md">
+      <div className="max-w-3xl w-full p-8 md:p-16 border border-white/20 bg-black relative flex flex-col gap-12">
+        <button 
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/50 hover:text-white p-1 rounded-full hover:bg-white/10"
+          className="absolute top-8 right-8 text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors"
         >
-          <X size={18} />
+          [ CLOSE ]
         </button>
 
-        <div className="flex items-center gap-2 text-xs font-mono uppercase text-[#e8702a] mb-2">
-          <Sparkles size={14} />
-          <span>Stratum Creation Studio</span>
+        <div>
+          <h2 className="text-4xl md:text-5xl font-serif text-white uppercase tracking-wide">
+            Draft
+            <br />
+            <span className="italic text-white/50">New Entry</span>
+          </h2>
         </div>
 
-        <h3 className="text-2xl font-playfair text-white mb-2">Compose Your Wisdom</h3>
-        <p className="text-xs text-white/60 mb-6">
-          Write an insight, excerpt, or reflection to permanently archive in your local and cloud database.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-mono text-white/70 mb-1.5">Quote Words *</label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs uppercase tracking-widest text-white/50">The Quote</label>
             <textarea
-              required
-              rows={3}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Write something profound or inspiring..."
-              className="w-full bg-white/5 border border-white/15 rounded-xl p-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#e8702a]"
+              className="bg-transparent border border-white/20 p-4 text-xl font-serif text-white placeholder-white/20 focus:outline-none focus:border-white min-h-[150px] resize-none"
+              placeholder="Enter the words that moved you..."
+              required
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-mono text-white/70 mb-1.5">Author</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs uppercase tracking-widest text-white/50">Author</label>
               <input
                 type="text"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
-                placeholder="e.g. Maya Angelou, You"
-                className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#e8702a]"
+                className="bg-transparent border-b border-white/20 py-2 text-white placeholder-white/20 focus:outline-none focus:border-white font-sans text-sm uppercase tracking-widest"
+                placeholder="Anonymous"
               />
             </div>
-
-            <div>
-              <label className="block text-xs font-mono text-white/70 mb-1.5">Category</label>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-xs uppercase tracking-widest text-white/50">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-[#12141e] border border-white/15 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#e8702a]"
+                className="bg-transparent border-b border-white/20 py-2 text-white focus:outline-none focus:border-white font-sans text-sm uppercase tracking-widest appearance-none"
               >
-                <option value="Wisdom">Wisdom</option>
-                <option value="Romance">Romance</option>
-                <option value="Stoicism">Stoicism</option>
-                <option value="Mindfulness">Mindfulness</option>
-                <option value="Motivation">Motivation</option>
-                <option value="Philosophy">Philosophy</option>
-                <option value="Innovation">Innovation</option>
-                <option value="Poetry & Art">Poetry & Art</option>
-                <option value="Courage">Courage</option>
+                {['Wisdom', 'Motivation', 'Philosophy', 'Stoicism', 'Romance'].map(c => (
+                  <option key={c} value={c} className="bg-black text-white">{c}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-mono text-white/70 mb-1.5">Tags (comma separated)</label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="calm, horizon, reflection"
-              className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#e8702a]"
-            />
-          </div>
-
           <button
             type="submit"
-            className="w-full bg-[#e8702a] hover:bg-[#d2611f] text-white py-3 rounded-xl font-semibold text-sm transition-all hover:scale-[1.02] shadow-lg shadow-[#e8702a]/30 cursor-pointer"
+            disabled={isSubmitting}
+            className="btn-primary w-full mt-4"
           >
-            Archive into Stratum
+            {isSubmitting ? 'SAVING...' : 'PUBLISH TO VAULT'}
           </button>
         </form>
       </div>

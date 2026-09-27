@@ -8,22 +8,21 @@ interface ToastProps {
 export const Toast: React.FC<ToastProps> = ({ toast }) => {
   if (!toast) return null;
 
-  const border =
-    toast.type === 'success'
-      ? 'border-emerald-500/40'
-      : toast.type === 'error'
-        ? 'border-red-500/40'
-        : 'border-white/20';
-
-  const accent =
-    toast.type === 'success' ? 'text-emerald-300' : toast.type === 'error' ? 'text-red-300' : 'text-white';
+  const isError = toast.type === 'error';
+  const isSuccess = toast.type === 'success';
 
   return (
-    <div
-      role="status"
-      className={`fixed bottom-6 right-6 z-[90] max-w-sm px-4 py-3 rounded-xl bg-[#0d0f16]/95 backdrop-blur-xl border ${border} ${accent} text-xs font-mono shadow-2xl toast-in`}
-    >
-      {toast.message}
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[110] toast-in pointer-events-none">
+      <div 
+        className={`px-8 py-4 border font-sans text-xs uppercase tracking-widest bg-black flex items-center gap-4 ${
+          isError ? 'border-red-500 text-red-500' : isSuccess ? 'border-white text-white' : 'border-white/50 text-white'
+        }`}
+      >
+        <span className="font-bold">
+          {isError ? '[ ERROR ]' : isSuccess ? '[ SUCCESS ]' : '[ INFO ]'}
+        </span>
+        <span>{toast.message}</span>
+      </div>
     </div>
   );
 };
