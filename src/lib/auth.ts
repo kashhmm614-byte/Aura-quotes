@@ -1,186 +1,75 @@
-import { GOOGLE_CONFIG } from './google-config';
 import type { AuraUser } from '../types';
 
-export function compute10DigitUID(subId?: string | null, email?: string | null): string {
-  const seed = String(subId || email || 'aura_user_' + Math.random()).trim();
-  let h1 = 0x811c9dc5 >>> 0;
-  let h2 = 0x9e3779b9 >>> 0;
+const GOOGLE_CLIENT_ID = '1046400810342-demelk19ae49o62p58d1v2vggqtr7en5.apps.googleusercontent.com';
 
-  for (let i = 0; i < seed.length; i++) {
-    const code = seed.charCodeAt(i);
-    h1 = Math.imul(h1 ^ code, 0x01000193) >>> 0;
-    h2 = Math.imul(h2 ^ (code + i + 1), 0x5bd1e995) >>> 0;
-  }
-
-  const combined = (BigInt(h1) << 32n) | BigInt(h2);
-  const min = 1000000000n;
-  const max = 9999999999n;
-  const range = max - min + 1n;
-  return ((combined % range) + min).toString();
-}
-
-export function decodeJwt(token: string): Record<string, unknown> | null {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    console.error('Failed to parse Google JWT credential:', e);
-    return null;
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: Record<string, unknown>) => void;
+          renderButton: (el: HTMLElement, config: Record<string, unknown>) => void;
+          prompt: () => void;
+        };
+      };
+    };
   }
 }
 
-const STORAGE_KEY = 'aura_user_session';
-
-export function loadSession(): AuraUser | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.uid && String(parsed.uid).length === 10) {
-        return parsed as AuraUser;
-      }
-    }
-  } catch (e) {
-    console.warn('Failed to load cached auth session:', e);
-  }
-  return null;
+function decodeJwt(token: string): Record<string, string> {
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const json = decodeURIComponent(
+    atob(base64)
+      .split('')
+      .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join('')
+  );
+  return JSON.parse(json);
 }
 
-export function saveSession(user: AuraUser | null): void {
-  try {
-    if (user) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  } catch (e) {
-    console.warn('Failed to save auth session:', e);
-  }
+function generateUid10(): string {
+  return Math.floor(1000000000 + Math.random() * 9000000000).toString();
 }
 
-export function handleGoogleCredential(response: { credential?: string }): AuraUser | null {
-  if (!response || !response.credential) {
-    console.error('No credential received in Google response');
-    return null;
-  }
-
-  const payload = decodeJwt(response.credential);
-  if (!payload || !payload.sub) {
-    console.error('Invalid token payload in Google response');
-    return null;
-  }
-
-  const uid = compute10DigitUID(payload.sub as string, payload.email as string | undefined);
-
-  const user: AuraUser = {
-    uid,
-    googleId: payload.sub as string,
-    name: (payload.name as string) || 'Aura Member',
-    givenName: (payload.given_name as string) || (payload.name as string) || 'Member',
-    email: payload.email as string | undefined,
-    picture: (payload.picture as string) || null,
-    authMethod: 'google',
-    signedInAt: new Date().toISOString()
-  };
-
-  saveSession(user);
-  return user;
+export function getStoredUser(): AuraUser | null {
+  const data = localStorage.getItem('aura_user');
+  return data ? JSON.parse(data) : null;
 }
 
-export function loginWithDemo(
-  opts: { name?: string; email?: string; picture?: string | null } = {}
-): AuraUser {
-  const name = opts.name ?? 'Akshit Sharma';
-  const email = opts.email ?? 'akshit@example.com';
-  const picture = opts.picture ?? null;
-  const demoSub = 'google_usr_' + email.replace(/[^a-zA-Z0-9]/g, '');
-  const uid = compute10DigitUID(demoSub, email);
-
-  const user: AuraUser = {
-    uid,
-    googleId: demoSub,
-    name,
-    givenName: name.split(' ')[0],
-    email,
-    picture,
-    authMethod: 'google_verified',
-    signedInAt: new Date().toISOString()
-  };
-
-  saveSession(user);
-  return user;
+export function clearStoredUser() {
+  localStorage.removeItem('aura_user');
 }
 
-export function signOut(): void {
-  saveSession(null);
-  try {
-    window.google?.accounts?.id?.disableAutoSelect?.();
-  } catch {
-    /* ignore SDK cleanup */
+export function initGoogleAuth(
+  buttonEl: HTMLElement,
+  onSuccess: (user: AuraUser) => void
+) {
+  if (!window.google) {
+    console.warn('Google Identity Services not loaded yet');
+    return;
   }
-}
 
-export async function copyUID(user: AuraUser | null): Promise<boolean> {
-  if (!user || !user.uid) return false;
-  try {
-    await navigator.clipboard.writeText(user.uid);
-    return true;
-  } catch {
-    const ta = document.createElement('textarea');
-    ta.value = user.uid;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    return true;
-  }
-}
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: (response: { credential: string }) => {
+      const payload = decodeJwt(response.credential);
+      const user: AuraUser = {
+        uid: generateUid10(),
+        google_id: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+      };
+      localStorage.setItem('aura_user', JSON.stringify(user));
+      onSuccess(user);
+    },
+  });
 
-export function initGoogleGIS(
-  container: HTMLElement | null,
-  onCredential: (user: AuraUser) => void
-): void {
-  if (typeof window === 'undefined' || !container) return;
-  const clientId = GOOGLE_CONFIG.clientId;
-  if (!clientId) return;
-
-  const checkSDK = (attempts = 0) => {
-    if (window.google?.accounts?.id) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (res: { credential?: string }) => {
-            const user = handleGoogleCredential(res);
-            if (user) onCredential(user);
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true
-        });
-        container.innerHTML = '';
-        window.google.accounts.id.renderButton(container, {
-          theme: 'filled_black',
-          size: 'large',
-          shape: 'pill',
-          text: 'continue_with',
-          logo_alignment: 'left',
-          width: 320
-        });
-      } catch (e) {
-        console.warn('Google Identity button render note:', e);
-      }
-    } else if (attempts < 25) {
-      setTimeout(() => checkSDK(attempts + 1), 200);
-    }
-  };
-
-  checkSDK();
+  window.google.accounts.id.renderButton(buttonEl, {
+    theme: 'filled_black',
+    size: 'large',
+    shape: 'pill',
+    width: 280,
+  });
 }

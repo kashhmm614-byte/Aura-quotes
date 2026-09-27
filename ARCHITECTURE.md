@@ -17,23 +17,6 @@ AuraQuote is a daily inspirational quotes web application engineered for high vi
 
 ---
 
-## 2. Design System & Aesthetic (The "A24" Look)
-
-The UI was completely overhauled from a glassmorphism/SaaS aesthetic to a stark, cinematic design:
-
-- **Color Palette**: Pure Black (`#000000`) and Pure White (`#ffffff`).
-- **Typography**: 
-  - **Headings & Quotes**: `Cormorant Garamond` (High-contrast, elegant serif).
-  - **UI Labels & Copy**: `Space Grotesk` (Modernist, geometric sans-serif, often fully uppercase and widely tracked `tracking-widest`).
-- **Visuals**:
-  - `0px` border radiuses (sharp corners everywhere).
-  - SVG Film Grain injected globally via `::after` on the `body` in `index.css`.
-  - Minimalist hover effects (fades and color inversions).
-- **Core Components**:
-  - `QuoteCard.tsx`: Designed like an editorial movie poster.
-  - Modals (`AuthGate.tsx`, `VaultModal.tsx`, etc.): Implemented as full-screen or massive overlays with frosted glass (`backdrop-blur-md`).
-
----
 
 ## 3. Data Architecture (Offline-First Hybrid)
 

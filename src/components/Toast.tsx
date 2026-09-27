@@ -1,28 +1,31 @@
-import React from 'react';
-import type { ToastMessage } from '../types';
+import { Check, X } from 'lucide-react';
 
 interface ToastProps {
-  toast: ToastMessage | null;
+  message: string;
+  type?: 'success' | 'error' | 'info';
+  onClose: () => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({ toast }) => {
-  if (!toast) return null;
-
-  const isError = toast.type === 'error';
-  const isSuccess = toast.type === 'success';
+export default function Toast({ message, type = 'success', onClose }: ToastProps) {
+  const colors = {
+    success: 'from-emerald-500/20 to-emerald-600/10 border-emerald-500/20',
+    error: 'from-red-500/20 to-red-600/10 border-red-500/20',
+    info: 'from-purple-500/20 to-cyan-500/10 border-purple-500/20',
+  };
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[110] toast-in pointer-events-none">
-      <div 
-        className={`px-8 py-4 border font-sans text-xs uppercase tracking-widest bg-black flex items-center gap-4 ${
-          isError ? 'border-red-500 text-red-500' : isSuccess ? 'border-white text-white' : 'border-white/50 text-white'
-        }`}
-      >
-        <span className="font-bold">
-          {isError ? '[ ERROR ]' : isSuccess ? '[ SUCCESS ]' : '[ INFO ]'}
-        </span>
-        <span>{toast.message}</span>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-up">
+      <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r ${colors[type]} border backdrop-blur-xl shadow-2xl`}>
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+          type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-red-500' : 'bg-purple-500'
+        }`}>
+          <Check size={14} className="text-white" />
+        </div>
+        <span className="text-white/90 text-sm font-medium">{message}</span>
+        <button onClick={onClose} className="ml-2 text-white/40 hover:text-white transition-colors cursor-pointer" aria-label="Dismiss">
+          <X size={14} />
+        </button>
       </div>
     </div>
   );
-};
+}
