@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { AuraUser } from '../types';
+import { initGoogleGIS } from '../lib/auth';
 
 interface AuthGateProps {
   isOpen: boolean;
@@ -11,10 +12,24 @@ interface AuthGateProps {
 
 export const AuthGate: React.FC<AuthGateProps> = ({
   isOpen,
+  user,
+  onAuth,
   onDemoLogin,
   onClose
 }) => {
-  if (!isOpen) return null;
+  const gisRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || user) return;
+    if (gisRef.current) {
+      initGoogleGIS(gisRef.current, (u) => {
+        onAuth(u);
+        onClose();
+      });
+    }
+  }, [isOpen, user, onAuth, onClose]);
+
+  if (!isOpen || user) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md">
@@ -39,7 +54,10 @@ export const AuthGate: React.FC<AuthGateProps> = ({
 
         <div className="flex flex-col gap-4">
           <button
-            onClick={onDemoLogin}
+            onClick={() => {
+              onDemoLogin();
+              onClose();
+            }}
             className="btn-primary w-full"
           >
             Enter Demo Mode
@@ -51,12 +69,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
             <div className="flex-1 h-px bg-white/10"></div>
           </div>
           
-          <button
-            onClick={() => alert("Google Login not configured in this environment.")}
-            className="btn-secondary w-full"
-          >
-            Sign in with Google
-          </button>
+          <div className="flex justify-center min-h-[48px]" ref={gisRef}></div>
         </div>
       </div>
     </div>
