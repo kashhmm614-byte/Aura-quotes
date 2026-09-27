@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Quote, AuraUser, ModalType, CategoryName } from './types';
 import { seedIfEmpty, getRandomQuote, getQuoteOfTheDay, addFavorite, removeFavorite, isFavorite } from './lib/db';
 import { getStoredUser } from './lib/auth';
@@ -35,7 +35,7 @@ export default function App() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [showShare, setShowShare] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
-  const [streak, setStreak] = useState(0);
+  const [streak] = useState(0);
 
   const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => setToast({ msg, type });
 

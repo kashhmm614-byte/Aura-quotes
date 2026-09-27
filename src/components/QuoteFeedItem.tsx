@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { Quote, AuraUser } from '../types';
 import { Heart, Volume2, VolumeX, Download } from 'lucide-react';
 import QuoteCard from './QuoteCard';
